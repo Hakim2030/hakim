@@ -2,24 +2,25 @@ import 'package:flutter/material.dart';
 import 'screens/login_screen.dart';
 
 void main() {
-  runApp(const HakimApp());
+  runApp(const Hakim());
 }
 
-class HakimApp extends StatelessWidget {
-  const HakimApp({super.key});
+class Hakim extends StatelessWidget {
+  const Hakim({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-
-      title: "Hakim",
-
+      title: 'Hakim',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        fontFamily: 'Arial',
+        scaffoldBackgroundColor: Colors.white,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF123F78),
+        ),
       ),
-
-      home: LoginScreen(),
+      home: const LoginScreen(),
     );
   }
 }
