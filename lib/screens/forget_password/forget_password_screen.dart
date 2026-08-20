@@ -9,9 +9,13 @@ class ForgetPasswordScreen extends StatefulWidget {
       _ForgetPasswordScreenState();
 }
 
-class _ForgetPasswordScreenState
-    extends State<ForgetPasswordScreen> {
+class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
   static const Color primaryColor = Color(0xFF0C3468);
+  static const Color fieldColor = Color(0xFFF8F8F8);
+  static const Color borderColor = Color(0xFFCFCFCF);
+  static const Color hintColor = Color(0xFFAAAAAA);
+
+  static const String fontFamily = 'ThmanyahSerifDisplay';
 
   final TextEditingController emailController =
   TextEditingController();
@@ -21,7 +25,7 @@ class _ForgetPasswordScreenState
 
   String selectedCountryCode = '+970';
 
-  final List<Map<String, String>> countryCodes = [
+  final List<Map<String, String>> countryCodes = const [
     {
       'name': 'فلسطين',
       'code': '+970',
@@ -92,438 +96,553 @@ class _ForgetPasswordScreenState
   }
 
   void continueToVerification() {
-    if (emailController.text.trim().isEmpty ||
-        phoneController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'يرجى إدخال البريد الإلكتروني ورقم الهاتف',
-          ),
-        ),
-      );
+    FocusScope.of(context).unfocus();
+
+    final String email = emailController.text.trim();
+    final String phone = phoneController.text.trim();
+
+    // يكفي إدخال البريد الإلكتروني أو رقم الهاتف.
+    if (email.isEmpty && phone.isEmpty) {
+      showMessage('يرجى إدخال البريد الإلكتروني أو رقم الهاتف');
+      return;
+    }
+
+    if (email.isNotEmpty &&
+        !RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(email)) {
+      showMessage('يرجى إدخال بريد إلكتروني صحيح');
+      return;
+    }
+
+    final phoneDigits = phone.replaceAll(RegExp(r'\D'), '');
+    if (phone.isNotEmpty && phoneDigits.length < 7) {
+      showMessage('يرجى إدخال رقم هاتف صحيح');
       return;
     }
 
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-        const VerificationCodeScreen(),
+        builder: (_) => const VerificationCodeScreen(),
       ),
     );
   }
 
-  InputDecoration inputDecoration({
-    required String hint,
-    required IconData icon,
-  }) {
-    return InputDecoration(
-      hintText: hint,
-      hintStyle: const TextStyle(
-        color: Color(0xFFAAAAAA),
-        fontSize: 10,
+  void showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Text(
+            message,
+            textAlign: TextAlign.right,
+            style: const TextStyle(fontFamily: fontFamily),
+          ),
+        ),
       ),
-      suffixIcon: Icon(
-        icon,
+    );
+  }
+
+  InputDecoration emailDecoration() {
+    return InputDecoration(
+      hintText: 'example@gmail.com',
+      hintTextDirection: TextDirection.ltr,
+      hintStyle: const TextStyle(
+        fontFamily: fontFamily,
+        color: hintColor,
+        fontSize: 12,
+        fontWeight: FontWeight.w400,
+      ),
+      suffixIcon: const Icon(
+        Icons.mail_outline_rounded,
         size: 18,
-        color: const Color(0xFF999999),
+        color: Color(0xFF999999),
+      ),
+      suffixIconConstraints: const BoxConstraints(
+        minWidth: 42,
+        minHeight: 42,
       ),
       filled: true,
-      fillColor: const Color(0xFFF8F8F8),
+      fillColor: fieldColor,
       contentPadding: const EdgeInsets.symmetric(
-        horizontal: 11,
+        horizontal: 13,
         vertical: 12,
       ),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(
-          color: Color(0xFFCFCFCF),
-        ),
+      border: outlineBorder(borderColor),
+      enabledBorder: outlineBorder(borderColor),
+      focusedBorder: outlineBorder(
+        primaryColor,
+        width: 1.2,
       ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(
-          color: Color(0xFFCFCFCF),
-        ),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(
-          color: primaryColor,
-          width: 1.2,
-        ),
+    );
+  }
+
+  OutlineInputBorder outlineBorder(
+      Color color, {
+        double width = 1,
+      }) {
+    return OutlineInputBorder(
+      borderRadius: BorderRadius.circular(10),
+      borderSide: BorderSide(
+        color: color,
+        width: width,
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final double screenWidth =
+        MediaQuery.sizeOf(context).width;
+
+    final double pageWidth =
+    screenWidth > 440 ? 440 : screenWidth;
+
     return Scaffold(
       backgroundColor: Colors.white,
+      resizeToAvoidBottomInset: true,
       body: Directionality(
         textDirection: TextDirection.rtl,
-        child: SafeArea(
-          bottom: false,
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                SizedBox(
-                  width: double.infinity,
-                  height: 205,
-                  child: Stack(
-                    children: [
-                      Container(
-                        width: double.infinity,
-                        height: 205,
-                        color: primaryColor,
-                      ),
-
-                      Positioned(
-                        left: 0,
-                        bottom: 0,
-                        child: Image.asset(
-                          'assets/images/forget_password_pattern.png',
-                          width: 150,
-                          height: 150,
-                          fit: BoxFit.contain,
-                        ),
-                      ),
-
-                      Positioned(
-                        left: 18,
-                        top: 40,
-                        child: GestureDetector(
-                          onTap: () {
-                            Navigator.pop(context);
-                          },
-                          child: const Icon(
-                            Icons.arrow_back_ios_new,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                        ),
-                      ),
-
-                      Positioned(
-                        right: 13,
-                        top: 67,
-                        child: Column(
-                          crossAxisAlignment:
-                          CrossAxisAlignment.end,
-                          children: const [
-                            Text(
-                              'نسيت كلمة المرور',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 22,
-                                fontWeight:
-                                FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              'أدخل حساب الإيميل لإرسال\nكود التحقق',
-                              textAlign:
-                              TextAlign.right,
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                height: 1.35,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                Transform.translate(
-                  offset: const Offset(0, -1),
-                  child: Container(
-                    width: double.infinity,
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(20),
-                        topRight: Radius.circular(20),
-                      ),
+        child: Center(
+          child: SizedBox(
+            width: pageWidth,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  keyboardDismissBehavior:
+                  ScrollViewKeyboardDismissBehavior.onDrag,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
                     ),
-                    padding: const EdgeInsets.fromLTRB(
-                      13,
-                      25,
-                      13,
-                      20,
-                    ),
-                    child: Column(
-                      crossAxisAlignment:
-                      CrossAxisAlignment.stretch,
-                      children: [
-                        const Text(
-                          'حساب الإيميل',
-                          textAlign: TextAlign.right,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight:
-                            FontWeight.w600,
-                          ),
-                        ),
+                    child: IntrinsicHeight(
+                      child: Column(
+                        children: [
+                          const _HeaderSection(),
 
-                        const SizedBox(height: 6),
-
-                        TextField(
-                          controller: emailController,
-                          keyboardType:
-                          TextInputType.emailAddress,
-                          textDirection:
-                          TextDirection.ltr,
-                          textAlign: TextAlign.right,
-                          decoration: inputDecoration(
-                            hint: 'example@gmail.com',
-                            icon: Icons.mail_outline,
-                          ),
-                        ),
-
-                        const SizedBox(height: 20),
-
-                        Row(
-                          children: const [
-                            Expanded(
-                              child: Divider(
-                                color:
-                                Color(0xFFD5D5D5),
-                              ),
-                            ),
-                            Padding(
-                              padding:
-                              EdgeInsets.symmetric(
-                                horizontal: 12,
-                              ),
-                              child: Text(
-                                'أو',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              child: Divider(
-                                color:
-                                Color(0xFFD5D5D5),
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 15),
-
-                        const Text(
-                          'رقم الهاتف',
-                          textAlign: TextAlign.right,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight:
-                            FontWeight.w600,
-                          ),
-                        ),
-
-                        const SizedBox(height: 6),
-
-                        Container(
-                          height: 48,
-                          decoration: BoxDecoration(
-                            color:
-                            const Color(0xFFF8F8F8),
-                            borderRadius:
-                            BorderRadius.circular(8),
-                            border: Border.all(
-                              color:
-                              const Color(0xFFCFCFCF),
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 105,
-                                decoration:
-                                const BoxDecoration(
-                                  border: Border(
-                                    left: BorderSide(
-                                      color:
-                                      Color(0xFFCFCFCF),
-                                    ),
+                          Expanded(
+                            child: Transform.translate(
+                              offset: const Offset(0, -20),
+                              child: Container(
+                                width: double.infinity,
+                                decoration: const BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(22),
+                                    topRight: Radius.circular(22),
                                   ),
                                 ),
-                                child:
-                                DropdownButtonHideUnderline(
-                                  child:
-                                  DropdownButton<
-                                      String>(
-                                    value:
-                                    selectedCountryCode,
-                                    isExpanded:
-                                    true,
-                                    icon:
-                                    const Icon(
-                                      Icons
-                                          .keyboard_arrow_down,
-                                      size: 18,
+                                padding: const EdgeInsets.fromLTRB(
+                                  20,
+                                  25,
+                                  20,
+                                  30,
+                                ),
+                                child: Column(
+                                  crossAxisAlignment:
+                                  CrossAxisAlignment.stretch,
+                                  children: [
+                                    const _FieldLabel(
+                                      text: 'حساب الإيميل',
                                     ),
-                                    padding:
-                                    const EdgeInsets
-                                        .symmetric(
-                                      horizontal: 8,
+
+                                    const SizedBox(height: 6),
+
+                                    SizedBox(
+                                      height: 53,
+                                      child: TextField(
+                                        controller: emailController,
+                                        keyboardType:
+                                        TextInputType.emailAddress,
+                                        textInputAction:
+                                        TextInputAction.next,
+                                        textDirection:
+                                        TextDirection.ltr,
+                                        textAlign: TextAlign.right,
+                                        style: const TextStyle(
+                                          fontFamily: fontFamily,
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w400,
+                                          color: Colors.black,
+                                        ),
+                                        decoration: emailDecoration(),
+                                      ),
                                     ),
-                                    items:
-                                    countryCodes.map(
-                                          (country) {
-                                        return DropdownMenuItem<
-                                            String>(
-                                          value:
-                                          country['code'],
-                                          child: Row(
-                                            mainAxisAlignment:
-                                            MainAxisAlignment
-                                                .center,
-                                            children: [
-                                              Text(
-                                                country[
-                                                'flag']!,
-                                                style:
-                                                const TextStyle(
-                                                  fontSize:
-                                                  17,
-                                                ),
-                                              ),
-                                              const SizedBox(
-                                                width: 5,
-                                              ),
-                                              Text(
-                                                country[
-                                                'code']!,
-                                                style:
-                                                const TextStyle(
-                                                  fontSize:
-                                                  11,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      },
-                                    ).toList(),
-                                    onChanged:
-                                        (value) {
-                                      if (value != null) {
+
+                                    const SizedBox(height: 25),
+
+                                    const _OrDivider(),
+
+                                    const SizedBox(height: 22),
+
+                                    const _FieldLabel(
+                                      text: 'رقم الهاتف',
+                                    ),
+
+                                    const SizedBox(height: 6),
+
+                                    _PhoneField(
+                                      controller: phoneController,
+                                      selectedCountryCode:
+                                      selectedCountryCode,
+                                      countryCodes: countryCodes,
+                                      onCountryChanged: (value) {
+                                        if (value == null) return;
+
                                         setState(() {
-                                          selectedCountryCode =
-                                              value;
+                                          selectedCountryCode = value;
                                         });
-                                      }
-                                    },
-                                  ),
-                                ),
-                              ),
-
-                              Expanded(
-                                child: TextField(
-                                  controller:
-                                  phoneController,
-                                  keyboardType:
-                                  TextInputType.phone,
-                                  textAlign:
-                                  TextAlign.right,
-                                  decoration:
-                                  const InputDecoration(
-                                    hintText:
-                                    'اكتب رقمك',
-                                    hintStyle:
-                                    TextStyle(
-                                      color:
-                                      Color(0xFFAAAAAA),
-                                      fontSize: 10,
+                                      },
                                     ),
-                                    border:
-                                    InputBorder.none,
-                                    contentPadding:
-                                    EdgeInsets
-                                        .symmetric(
-                                      horizontal: 11,
+
+                                    const SizedBox(height: 34),
+
+                                    SizedBox(
+                                      height: 53,
+                                      child: ElevatedButton(
+                                        onPressed:
+                                        continueToVerification,
+                                        style:
+                                        ElevatedButton.styleFrom(
+                                          backgroundColor:
+                                          primaryColor,
+                                          foregroundColor:
+                                          Colors.white,
+                                          elevation: 0,
+                                          shadowColor:
+                                          Colors.transparent,
+                                          shape:
+                                          RoundedRectangleBorder(
+                                            borderRadius:
+                                            BorderRadius.circular(
+                                              10,
+                                            ),
+                                          ),
+                                        ),
+                                        child: const Text(
+                                          'استمرار',
+                                          style: TextStyle(
+                                            fontFamily: fontFamily,
+                                            fontSize: 17,
+                                            fontWeight:
+                                            FontWeight.w500,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                ),
-                              ),
 
-                              const Padding(
-                                padding:
-                                EdgeInsets.only(
-                                  right: 10,
+                                    /*
+                                      لا يوجد Home Indicator هنا.
+                                      الخط الأسود السفلي تم حذفه.
+                                    */
+                                    const Spacer(),
+                                  ],
                                 ),
-                                child: Icon(
-                                  Icons.phone_outlined,
-                                  size: 18,
-                                  color:
-                                  Color(0xFF999999),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        const SizedBox(height: 25),
-
-                        SizedBox(
-                          height: 43,
-                          child: ElevatedButton(
-                            onPressed:
-                            continueToVerification,
-                            style:
-                            ElevatedButton.styleFrom(
-                              backgroundColor:
-                              primaryColor,
-                              foregroundColor:
-                              Colors.white,
-                              elevation: 0,
-                              shape:
-                              RoundedRectangleBorder(
-                                borderRadius:
-                                BorderRadius.circular(8),
-                              ),
-                            ),
-                            child: const Text(
-                              'إستمرار',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight:
-                                FontWeight.w600,
                               ),
                             ),
                           ),
-                        ),
-
-                        const SizedBox(height: 125),
-
-                        Center(
-                          child: Container(
-                            width: 80,
-                            height: 4,
-                            decoration:
-                            BoxDecoration(
-                              color: Colors.black,
-                              borderRadius:
-                              BorderRadius.circular(
-                                10,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
+                );
+              },
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _HeaderSection extends StatelessWidget {
+  const _HeaderSection();
+
+  static const Color primaryColor = Color(0xFF0C3468);
+  static const String fontFamily = 'ThmanyahSerifDisplay';
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      height: 245,
+      color: primaryColor,
+      child: SafeArea(
+        bottom: false,
+        child: Stack(
+          clipBehavior: Clip.hardEdge,
+          children: [
+            Positioned(
+              left: -4,
+              bottom: 0,
+              child: Opacity(
+                opacity: 0.22,
+                child: Image.asset(
+                  'assets/images/forget_password_pattern.png',
+                  width: 175,
+                  height: 175,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) {
+                    return const SizedBox.shrink();
+                  },
+                ),
+              ),
+            ),
+
+            Positioned(
+              left: 16,
+              top: 17,
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => Navigator.pop(context),
+                  borderRadius: BorderRadius.circular(30),
+                  child: const SizedBox(
+                    width: 42,
+                    height: 42,
+                    child: Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      color: Colors.white,
+                      size: 22,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            const Positioned(
+              right: 20,
+              left: 20,
+              top: 70,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    'نسيت كلمة المرور',
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
+                      fontFamily: fontFamily,
+                      color: Colors.white,
+                      fontSize: 26,
+                      fontWeight: FontWeight.w700,
+                      height: 1.15,
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    'أدخل حساب الإيميل لإرسال\nكود التحقق',
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
+                      fontFamily: fontFamily,
+                      color: Colors.white,
+                      fontSize: 19,
+                      fontWeight: FontWeight.w400,
+                      height: 1.28,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FieldLabel extends StatelessWidget {
+  final String text;
+
+  const _FieldLabel({
+    required this.text,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      textAlign: TextAlign.right,
+      style: const TextStyle(
+        fontFamily: 'ThmanyahSerifDisplay',
+        color: Colors.black,
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+        height: 1.2,
+      ),
+    );
+  }
+}
+
+class _OrDivider extends StatelessWidget {
+  const _OrDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Row(
+      children: [
+        Expanded(
+          child: Divider(
+            height: 1,
+            thickness: 1,
+            color: Color(0xFFD5D5D5),
+          ),
+        ),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 12),
+          child: Text(
+            'أو',
+            style: TextStyle(
+              fontFamily: 'ThmanyahSerifDisplay',
+              color: Colors.black,
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Divider(
+            height: 1,
+            thickness: 1,
+            color: Color(0xFFD5D5D5),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PhoneField extends StatelessWidget {
+  final TextEditingController controller;
+  final String selectedCountryCode;
+  final List<Map<String, String>> countryCodes;
+  final ValueChanged<String?> onCountryChanged;
+
+  const _PhoneField({
+    required this.controller,
+    required this.selectedCountryCode,
+    required this.countryCodes,
+    required this.onCountryChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 53,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8F8F8),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: const Color(0xFFCFCFCF),
+        ),
+      ),
+      child: Directionality(
+        textDirection: TextDirection.ltr,
+        child: Row(
+          children: [
+            Container(
+              width: 104,
+              height: double.infinity,
+              decoration: const BoxDecoration(
+                border: Border(
+                  right: BorderSide(
+                    color: Color(0xFFCFCFCF),
+                  ),
+                ),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: selectedCountryCode,
+                  isExpanded: true,
+                  icon: const Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    size: 18,
+                    color: Colors.black,
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                  ),
+                  dropdownColor: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  style: const TextStyle(
+                    fontFamily: 'ThmanyahSerifDisplay',
+                    color: Colors.black,
+                    fontSize: 13,
+                  ),
+                  items: countryCodes.map((country) {
+                    return DropdownMenuItem<String>(
+                      value: country['code'],
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            country['flag']!,
+                            style: const TextStyle(
+                              fontSize: 18,
+                            ),
+                          ),
+                          const SizedBox(width: 5),
+                          Text(
+                            country['code']!,
+                            textDirection: TextDirection.ltr,
+                            style: const TextStyle(
+                              fontFamily:
+                              'ThmanyahSerifDisplay',
+                              color: Colors.black,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: onCountryChanged,
+                ),
+              ),
+            ),
+
+            Expanded(
+              child: Directionality(
+                textDirection: TextDirection.rtl,
+                child: TextField(
+                  controller: controller,
+                  keyboardType: TextInputType.phone,
+                  textInputAction: TextInputAction.done,
+                  textAlign: TextAlign.right,
+                  style: const TextStyle(
+                    fontFamily: 'ThmanyahSerifDisplay',
+                    color: Colors.black,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w400,
+                  ),
+                  decoration: const InputDecoration(
+                    hintText: 'اكتب رقمك',
+                    hintStyle: TextStyle(
+                      fontFamily: 'ThmanyahSerifDisplay',
+                      color: Color(0xFFAAAAAA),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                    ),
+                    suffixIcon: Icon(
+                      Icons.phone_outlined,
+                      size: 18,
+                      color: Color(0xFF999999),
+                    ),
+                    suffixIconConstraints: BoxConstraints(
+                      minWidth: 42,
+                      minHeight: 42,
+                    ),
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 11,
+                      vertical: 14,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
