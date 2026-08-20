@@ -1,5 +1,8 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
 import 'reset_password_screen.dart';
 
 class VerificationCodeScreen extends StatefulWidget {
@@ -13,6 +16,10 @@ class VerificationCodeScreen extends StatefulWidget {
 class _VerificationCodeScreenState
     extends State<VerificationCodeScreen> {
   static const Color primaryColor = Color(0xFF0C3468);
+  static const Color fieldColor = Color(0xFFF8F8F8);
+  static const Color borderColor = Color(0xFFC4C4C4);
+
+  static const String fontFamily = 'ThmanyahSerifDisplay';
 
   final List<TextEditingController> controllers =
   List.generate(5, (_) => TextEditingController());
@@ -31,37 +38,55 @@ class _VerificationCodeScreenState
 
   void startTimer() {
     timer?.cancel();
-
-    setState(() {
-      secondsRemaining = 50;
-    });
+    secondsRemaining = 50;
 
     timer = Timer.periodic(
       const Duration(seconds: 1),
-          (timer) {
+          (currentTimer) {
+        if (!mounted) {
+          currentTimer.cancel();
+          return;
+        }
+
         if (secondsRemaining > 0) {
           setState(() {
             secondsRemaining--;
           });
         } else {
-          timer.cancel();
+          currentTimer.cancel();
         }
       },
     );
   }
 
+  String get enteredCode {
+    return controllers
+        .map((controller) => controller.text)
+        .join();
+  }
+
+  String get formattedTime {
+    final int minutes = secondsRemaining ~/ 60;
+    final int seconds = secondsRemaining % 60;
+
+    return '${minutes.toString().padLeft(2, '0')}:'
+        '${seconds.toString().padLeft(2, '0')}';
+  }
+
   void verifyCode() {
-    String code = '';
+    FocusScope.of(context).unfocus();
 
-    for (final controller in controllers) {
-      code += controller.text;
-    }
-
-    if (code.length != 5) {
+    if (enteredCode.length != 5) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'يرجى إدخال رمز التحقق كاملًا',
+          content: Directionality(
+            textDirection: TextDirection.rtl,
+            child: Text(
+              'يرجى إدخال رمز التحقق كاملًا',
+              style: TextStyle(
+                fontFamily: fontFamily,
+              ),
+            ),
           ),
         ),
       );
@@ -71,22 +96,36 @@ class _VerificationCodeScreenState
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-        const ResetPasswordScreen(),
+        builder: (_) => const ResetPasswordScreen(),
       ),
     );
   }
 
   void resendCode() {
-    if (secondsRemaining > 0) {
-      return;
-    }
+    if (secondsRemaining > 0) return;
 
     for (final controller in controllers) {
       controller.clear();
     }
 
+    focusNodes.first.requestFocus();
+
+    setState(() {
+      secondsRemaining = 50;
+    });
+
     startTimer();
+  }
+
+  void handleCodeChanged(String value, int index) {
+    if (value.isNotEmpty && index < controllers.length - 1) {
+      focusNodes[index + 1].requestFocus();
+      return;
+    }
+
+    if (value.isEmpty && index > 0) {
+      focusNodes[index - 1].requestFocus();
+    }
   }
 
   @override
@@ -97,8 +136,8 @@ class _VerificationCodeScreenState
       controller.dispose();
     }
 
-    for (final node in focusNodes) {
-      node.dispose();
+    for (final focusNode in focusNodes) {
+      focusNode.dispose();
     }
 
     super.dispose();
@@ -106,284 +145,353 @@ class _VerificationCodeScreenState
 
   @override
   Widget build(BuildContext context) {
+    final double screenWidth = MediaQuery.sizeOf(context).width;
+    final double pageWidth =
+    screenWidth > 440 ? 440 : screenWidth;
+
     return Scaffold(
       backgroundColor: Colors.white,
+      resizeToAvoidBottomInset: true,
       body: Directionality(
         textDirection: TextDirection.rtl,
-        child: SafeArea(
-          bottom: false,
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                SizedBox(
-                  width: double.infinity,
-                  height: 205,
-                  child: Stack(
-                    children: [
-                      Container(
-                        width: double.infinity,
-                        height: 205,
-                        color: primaryColor,
-                      ),
-
-                      Positioned(
-                        left: 0,
-                        bottom: 0,
-                        child: Image.asset(
-                          'assets/images/forget_password_pattern.png',
-                          width: 150,
-                          height: 150,
-                          fit: BoxFit.contain,
-                        ),
-                      ),
-
-                      Positioned(
-                        left: 18,
-                        top: 40,
-                        child: GestureDetector(
-                          onTap: () {
-                            Navigator.pop(context);
-                          },
-                          child: const Icon(
-                            Icons.arrow_back_ios_new,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                        ),
-                      ),
-
-                      Positioned(
-                        right: 13,
-                        top: 67,
-                        child: Column(
-                          crossAxisAlignment:
-                          CrossAxisAlignment.end,
-                          children: const [
-                            Text(
-                              'تم إرسال الكود',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 22,
-                                fontWeight:
-                                FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              'تحقق من حسابك الإيميل\nأو تطبيق الرسائل',
-                              textAlign:
-                              TextAlign.right,
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                height: 1.35,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                Transform.translate(
-                  offset: const Offset(0, -1),
-                  child: Container(
-                    width: double.infinity,
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(20),
-                        topRight: Radius.circular(20),
-                      ),
+        child: Center(
+          child: SizedBox(
+            width: pageWidth,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  keyboardDismissBehavior:
+                  ScrollViewKeyboardDismissBehavior.onDrag,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
                     ),
-                    padding: const EdgeInsets.fromLTRB(
-                      13,
-                      25,
-                      13,
-                      20,
-                    ),
-                    child: Column(
-                      children: [
-                        const Text(
-                          'قم بإدخال الرمز',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
+                    child: IntrinsicHeight(
+                      child: Column(
+                        children: [
+                          const _VerificationHeader(),
 
-                        const SizedBox(height: 15),
-
-                        Row(
-                          mainAxisAlignment:
-                          MainAxisAlignment
-                              .spaceBetween,
-                          textDirection:
-                          TextDirection.ltr,
-                          children: List.generate(
-                            5,
-                                (index) {
-                              return SizedBox(
-                                width: 42,
-                                height: 56,
-                                child: TextField(
-                                  controller:
-                                  controllers[index],
-                                  focusNode:
-                                  focusNodes[index],
-                                  keyboardType:
-                                  TextInputType.number,
-                                  maxLength: 1,
-                                  textAlign:
-                                  TextAlign.center,
-                                  textDirection:
-                                  TextDirection.ltr,
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight:
-                                    FontWeight.bold,
-                                  ),
-                                  onChanged: (value) {
-                                    if (value.isNotEmpty &&
-                                        index < 4) {
-                                      focusNodes[index + 1]
-                                          .requestFocus();
-                                    }
-
-                                    if (value.isEmpty &&
-                                        index > 0) {
-                                      focusNodes[index - 1]
-                                          .requestFocus();
-                                    }
-                                  },
-                                  decoration:
-                                  InputDecoration(
-                                    counterText: '',
-                                    filled: true,
-                                    fillColor:
-                                    const Color(
-                                      0xFFF8F8F8,
-                                    ),
-                                    border:
-                                    OutlineInputBorder(
-                                      borderRadius:
-                                      BorderRadius
-                                          .circular(7),
-                                      borderSide:
-                                      const BorderSide(
-                                        color:
-                                        Color(
-                                          0xFFCFCFCF,
-                                        ),
-                                      ),
-                                    ),
-                                    enabledBorder:
-                                    OutlineInputBorder(
-                                      borderRadius:
-                                      BorderRadius
-                                          .circular(7),
-                                      borderSide:
-                                      const BorderSide(
-                                        color:
-                                        Color(
-                                          0xFFCFCFCF,
-                                        ),
-                                      ),
-                                    ),
-                                    focusedBorder:
-                                    OutlineInputBorder(
-                                      borderRadius:
-                                      BorderRadius
-                                          .circular(7),
-                                      borderSide:
-                                      const BorderSide(
-                                        color:
-                                        primaryColor,
-                                        width: 1.2,
-                                      ),
-                                    ),
+                          Expanded(
+                            child: Transform.translate(
+                              offset: const Offset(0, -28),
+                              child: Container(
+                                width: double.infinity,
+                                decoration: const BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(32),
+                                    topRight: Radius.circular(32),
                                   ),
                                 ),
-                              );
-                            },
-                          ),
-                        ),
+                                padding: const EdgeInsets.fromLTRB(
+                                  13,
+                                  47,
+                                  13,
+                                  28,
+                                ),
+                                child: Column(
+                                  crossAxisAlignment:
+                                  CrossAxisAlignment.stretch,
+                                  children: [
+                                    const Text(
+                                      'قم بإدخال الرمز',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontFamily: fontFamily,
+                                        color: Colors.black,
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.w500,
+                                        height: 1.2,
+                                      ),
+                                    ),
 
-                        const SizedBox(height: 20),
+                                    const SizedBox(height: 28),
 
-                        GestureDetector(
-                          onTap: resendCode,
-                          child: Text(
-                            secondsRemaining > 0
-                                ? 'سيتم إرسال الكود مرة أخرى خلال ${secondsRemaining.toString().padLeft(2, '0')} ثانية'
-                                : 'إعادة إرسال الكود',
-                            style: TextStyle(
-                              fontSize: 9,
-                              color:
-                              secondsRemaining > 0
-                                  ? Colors.grey
-                                  : primaryColor,
-                              decoration:
-                              secondsRemaining == 0
-                                  ? TextDecoration
-                                  .underline
-                                  : TextDecoration.none,
-                            ),
-                          ),
-                        ),
+                                    _buildCodeFields(),
 
-                        const SizedBox(height: 20),
+                                    const SizedBox(height: 39),
 
-                        SizedBox(
-                          width: double.infinity,
-                          height: 43,
-                          child: ElevatedButton(
-                            onPressed: verifyCode,
-                            style:
-                            ElevatedButton.styleFrom(
-                              backgroundColor:
-                              primaryColor,
-                              foregroundColor:
-                              Colors.white,
-                              elevation: 0,
-                              shape:
-                              RoundedRectangleBorder(
-                                borderRadius:
-                                BorderRadius.circular(8),
+                                    _buildTimer(),
+
+                                    const SizedBox(height: 37),
+
+                                    SizedBox(
+                                      height: 75,
+                                      child: ElevatedButton(
+                                        onPressed: verifyCode,
+                                        style:
+                                        ElevatedButton.styleFrom(
+                                          backgroundColor:
+                                          primaryColor,
+                                          foregroundColor:
+                                          Colors.white,
+                                          elevation: 0,
+                                          shadowColor:
+                                          Colors.transparent,
+                                          padding: EdgeInsets.zero,
+                                          shape:
+                                          RoundedRectangleBorder(
+                                            borderRadius:
+                                            BorderRadius.circular(
+                                              15,
+                                            ),
+                                          ),
+                                        ),
+                                        child: const Text(
+                                          'استمرار',
+                                          style: TextStyle(
+                                            fontFamily: fontFamily,
+                                            color: Colors.white,
+                                            fontSize: 25,
+                                            fontWeight:
+                                            FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+
+                                    /*
+                                      لا نضيف الخط الأسود السفلي؛
+                                      فهو تابع للجهاز وليس للتطبيق.
+                                    */
+                                    const Spacer(),
+                                  ],
+                                ),
                               ),
                             ),
-                            child: const Text(
-                              'إستمرار',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight:
-                                FontWeight.w600,
-                              ),
-                            ),
                           ),
-                        ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
-                        const SizedBox(height: 170),
-
-                        Center(
-                          child: Container(
-                            width: 80,
-                            height: 4,
-                            decoration: BoxDecoration(
-                              color: Colors.black,
-                              borderRadius:
-                              BorderRadius.circular(10),
-                            ),
-                          ),
-                        ),
-                      ],
+  Widget _buildCodeFields() {
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: Row(
+        children: List.generate(
+          controllers.length,
+              (index) {
+            return Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  right:
+                  index == controllers.length - 1 ? 0 : 8,
+                ),
+                child: SizedBox(
+                  height: 100,
+                  child: TextField(
+                    controller: controllers[index],
+                    focusNode: focusNodes[index],
+                    autofocus: index == 0,
+                    keyboardType: TextInputType.number,
+                    textInputAction: index == 4
+                        ? TextInputAction.done
+                        : TextInputAction.next,
+                    textAlign: TextAlign.center,
+                    textDirection: TextDirection.ltr,
+                    maxLength: 1,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(1),
+                    ],
+                    style: const TextStyle(
+                      fontFamily: fontFamily,
+                      color: Colors.black,
+                      fontSize: 30,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    onChanged: (value) {
+                      handleCodeChanged(value, index);
+                    },
+                    onSubmitted: (_) {
+                      if (index == controllers.length - 1) {
+                        verifyCode();
+                      }
+                    },
+                    decoration: InputDecoration(
+                      counterText: '',
+                      filled: true,
+                      fillColor: fieldColor,
+                      contentPadding: EdgeInsets.zero,
+                      border: _codeBorder(borderColor),
+                      enabledBorder: _codeBorder(borderColor),
+                      focusedBorder: _codeBorder(
+                        primaryColor,
+                        width: 1.4,
+                      ),
                     ),
                   ),
                 ),
-              ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTimer() {
+    if (secondsRemaining == 0) {
+      return GestureDetector(
+        onTap: resendCode,
+        child: const Text(
+          'إعادة إرسال الكود',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontFamily: fontFamily,
+            color: primaryColor,
+            fontSize: 15,
+            fontWeight: FontWeight.w500,
+            decoration: TextDecoration.underline,
+            decorationColor: primaryColor,
+          ),
+        ),
+      );
+    }
+
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text(
+            'يمكنك إعادة إرسال الكود بعد ',
+            style: TextStyle(
+              fontFamily: fontFamily,
+              color: Colors.black,
+              fontSize: 15,
+              fontWeight: FontWeight.w400,
             ),
           ),
+          Text(
+            formattedTime,
+            textDirection: TextDirection.ltr,
+            style: const TextStyle(
+              fontFamily: fontFamily,
+              color: primaryColor,
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+              decoration: TextDecoration.underline,
+              decorationColor: primaryColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  OutlineInputBorder _codeBorder(
+      Color color, {
+        double width = 1,
+      }) {
+    return OutlineInputBorder(
+      borderRadius: BorderRadius.circular(10),
+      borderSide: BorderSide(
+        color: color,
+        width: width,
+      ),
+    );
+  }
+}
+
+class _VerificationHeader extends StatelessWidget {
+  const _VerificationHeader();
+
+  static const Color primaryColor = Color(0xFF0C3468);
+  static const String fontFamily = 'ThmanyahSerifDisplay';
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      height: 330,
+      color: primaryColor,
+      child: SafeArea(
+        bottom: false,
+        child: Stack(
+          clipBehavior: Clip.hardEdge,
+          children: [
+            Positioned(
+              left: -5,
+              bottom: -12,
+              child: Opacity(
+                opacity: 0.22,
+                child: Image.asset(
+                  'assets/images/forget_password_pattern.png',
+                  width: 230,
+                  height: 230,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) {
+                    return const SizedBox.shrink();
+                  },
+                ),
+              ),
+            ),
+
+            Positioned(
+              left: 18,
+              top: 20,
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => Navigator.pop(context),
+                  borderRadius: BorderRadius.circular(30),
+                  child: const SizedBox(
+                    width: 44,
+                    height: 44,
+                    child: Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      color: Colors.white,
+                      size: 25,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            const Positioned(
+              top: 82,
+              right: 20,
+              left: 20,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    'تم إرسال الكود',
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
+                      fontFamily: fontFamily,
+                      color: Colors.white,
+                      fontSize: 36,
+                      fontWeight: FontWeight.w700,
+                      height: 1.15,
+                    ),
+                  ),
+                  SizedBox(height: 18),
+                  Text(
+                    'تحقق من حسابك الإيميل\nأو تطبيق الرسائل',
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
+                      fontFamily: fontFamily,
+                      color: Colors.white,
+                      fontSize: 28,
+                      fontWeight: FontWeight.w400,
+                      height: 1.3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
