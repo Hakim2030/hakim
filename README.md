@@ -1,17 +1,45 @@
-# hakim
+# Hakim | حكيم
 
-A new Flutter project.
+تطبيق **حكيم** هو تطبيق رعاية صحية باستخدام Flutter، يهدف إلى تسهيل وصول المستخدمين في قطاع غزة إلى الأدوية والصيدليات والعيادات المجانية.
 
-## Getting Started
+## المميزات المخطط لها
 
-This project is a starting point for a Flutter application.
+* البحث عن الأدوية ومعلوماتها الأساسية.
+* معرفة البدائل المتاحة للأدوية.
+* معرفة الصيدليات التي يتوفر فيها الدواء.
+* عرض أسعار الأدوية وحالة توفرها.
+* اكتشاف الصيدليات والعيادات المجانية القريبة.
+* دعم قاعدة بيانات أدوية محلية تعمل دون إنترنت.
+* مزامنة الأسعار والتوفر عند توفر الاتصال بالإنترنت.
 
-A few resources to get you started if this is your first Flutter project:
+## الشاشات المنفذة حاليًا
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+* شاشة تسجيل الدخول.
+* شاشة نسيت كلمة المرور.
+* شاشة إدخال رمز التحقق.
+* شاشة إعادة تعيين كلمة المرور.
+* رسالة نجاح إعادة تعيين كلمة المرور.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## التصميم
+
+* اتجاه عربي من اليمين إلى اليسار `RTL`.
+* اللون الأساسي: `#0C3468`.
+* الخط المستخدم: `ThmanyahSerifDisplay`.
+* التصميم الأساسي مأخوذ من Figma بمقاس `440 × 956`.
+* الواجهات متجاوبة مع أحجام شاشات الهاتف المختلفة.
+
+## تشغيل المشروع
+
+تأكدي أولًا من تثبيت Flutter، ثم نفّذي:
+
+```bash
+flutter clean
+flutter pub get
+flutter run
+```
+
+## حالة المشروع
+
+المشروع حاليًا في مرحلة تصميم وبرمجة واجهات المصادقة واستعادة كلمة المرور.
+
+لم يتم ربط التطبيق بخادم API حتى الآن، وسيتم تنفيذ الربط بعد الانتهاء من تصميم وترتيب الواجهات وتوفير معلومات الخادم ونقاط الاتصال.
