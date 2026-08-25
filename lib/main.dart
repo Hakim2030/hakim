@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
-import 'screens/login_screen.dart';
+import 'package:flutter/services.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'screens/splash_screen.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const Hakim());
 }
 
@@ -12,15 +19,25 @@ class Hakim extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Hakim',
+      title: 'حكيم',
       theme: ThemeData(
-        fontFamily: 'Arial',
+        useMaterial3: true,
+        fontFamily: 'ThmanyahSerifDisplay',
         scaffoldBackgroundColor: Colors.white,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF123F78),
+          seedColor: const Color(0xFF0C3468),
+          primary: const Color(0xFF0C3468),
+          surface: Colors.white,
+        ),
+        snackBarTheme: const SnackBarThemeData(
+          behavior: SnackBarBehavior.floating,
         ),
       ),
-      home: const LoginScreen(),
+      builder: (context, child) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: child ?? const SizedBox.shrink(),
+      ),
+      home: const SplashScreen(),
     );
   }
 }

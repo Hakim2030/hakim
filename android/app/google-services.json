@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "288536802728",
+    "project_id": "hakim-5a7b2",
+    "storage_bucket": "hakim-5a7b2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:288536802728:android:caf6fc802253074f9f999d",
+        "android_client_info": {
+          "package_name": "com.example.hakim"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDFCBEOoMxAuN24_2IQbnxTsQjVyZIS6EE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

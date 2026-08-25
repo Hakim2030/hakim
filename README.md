@@ -1,17 +1,45 @@
-# hakim
+# Hakim | حكيم
 
-A new Flutter project.
+تطبيق Flutter يهدف إلى تسهيل الوصول إلى معلومات الأدوية والصيدليات والعيادات
+المجانية في قطاع غزة، مع التخطيط لدعم قاعدة أدوية محلية تعمل دون إنترنت.
 
-## Getting Started
+## الموجود حاليًا
 
-This project is a starting point for a Flutter application.
+- شاشة تسجيل الدخول.
+- شاشة استعادة كلمة المرور بالبريد الإلكتروني أو رقم الهاتف.
+- شاشة رمز تحقق من خمسة أرقام مع عدّاد وإعادة إرسال.
+- شاشة إعادة تعيين كلمة المرور ورسالة نجاح سفلية.
+- تنقّل مكتمل بين الشاشات الأربع.
+- تصميم عربي RTL وخط `ThmanyahSerifDisplay` ولون أساسي `#0C3468`.
 
-A few resources to get you started if this is your first Flutter project:
+## التشغيل
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+```powershell
+flutter clean
+flutter pub get
+flutter run
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## هيكل الملفات الحالية
+
+```text
+lib/main.dart
+lib/screens/login_screen.dart
+lib/screens/forget_password/forget_password_screen.dart
+lib/screens/forget_password/verification_code_screen.dart
+lib/screens/forget_password/reset_password_screen.dart
+assets/fonts/
+assets/images/
+test/widget_test.dart
+```
+
+## غير منفذ بعد
+
+- ربط تسجيل الدخول واستعادة كلمة المرور بالـAPI.
+- شاشة إنشاء الحساب وتسجيل Google وApple.
+- الصفحة الرئيسية والبحث عن الأدوية.
+- بيانات الأدوية المحلية والعمل دون إنترنت والمزامنة.
+- الصيدليات والمخزون والأسعار والخرائط.
+- العيادات المجانية والخدمات الطبية.
+
+هذه النسخة مخصصة لتثبيت واجهات المستخدم أولًا، ولا تحتوي ربط API.

@@ -1,11 +1,11 @@
 {
-    "name": "hakim",
-    "short_name": "hakim",
+    "name": "حكيم",
+    "short_name": "حكيم",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#FFFFFF",
+    "theme_color": "#0C3468",
+    "description": "تطبيق حكيم لتسهيل الوصول إلى الدواء والخدمات الصحية.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
