@@ -2,7 +2,7 @@ name: hakim
 description: "Hakim healthcare access application for the Gaza Strip."
 publish_to: 'none'
 
-version: 1.0.0+1
+version: 1.0.1+2
 
 environment:
   sdk: ^3.12.2
@@ -14,6 +14,15 @@ dependencies:
   cupertino_icons: ^1.0.8
   http: ^1.6.0
   firebase_core: ^4.14.0
+
+  # عرض Google Map داخل التطبيق
+  google_maps_flutter: ^2.18.0
+
+  # الحصول على موقع الجهاز الحالي
+  geolocator: ^14.0.3
+
+  # تحويل الإحداثيات إلى عنوان مقروء
+  geocoding: ^5.0.0
 
 dev_dependencies:
   flutter_test:

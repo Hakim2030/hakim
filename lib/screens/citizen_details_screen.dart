@@ -28,10 +28,9 @@ class _CitizenDetailsScreenState extends State<CitizenDetailsScreen> {
   static const String fontFamily = 'ThmanyahSerifDisplay';
 
   final TextEditingController nameController = TextEditingController();
-  final TextEditingController idController = TextEditingController();
   final TextEditingController birthDateController = TextEditingController();
   final TextEditingController chronicDiseaseController =
-      TextEditingController();
+  TextEditingController();
 
   DateTime? selectedBirthDate;
   bool? hasChronicDisease;
@@ -39,7 +38,6 @@ class _CitizenDetailsScreenState extends State<CitizenDetailsScreen> {
   bool accountCreatedSuccessfully = false;
 
   String? nameError;
-  String? idError;
   String? birthDateError;
   String? chronicChoiceError;
   String? chronicDiseaseError;
@@ -47,6 +45,7 @@ class _CitizenDetailsScreenState extends State<CitizenDetailsScreen> {
   @override
   void initState() {
     super.initState();
+
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
         statusBarColor: primaryColor,
@@ -62,7 +61,6 @@ class _CitizenDetailsScreenState extends State<CitizenDetailsScreen> {
   @override
   void dispose() {
     nameController.dispose();
-    idController.dispose();
     birthDateController.dispose();
     chronicDiseaseController.dispose();
     super.dispose();
@@ -70,17 +68,18 @@ class _CitizenDetailsScreenState extends State<CitizenDetailsScreen> {
 
   void onNameChanged(String value) {
     if (nameError == null) return;
-    setState(() => nameError = null);
-  }
 
-  void onIdChanged(String value) {
-    if (idError == null) return;
-    setState(() => idError = null);
+    setState(() {
+      nameError = null;
+    });
   }
 
   void onDiseaseChanged(String value) {
     if (chronicDiseaseError == null) return;
-    setState(() => chronicDiseaseError = null);
+
+    setState(() {
+      chronicDiseaseError = null;
+    });
   }
 
   void selectChronicDisease(bool value) {
@@ -99,8 +98,9 @@ class _CitizenDetailsScreenState extends State<CitizenDetailsScreen> {
     FocusScope.of(context).unfocus();
 
     final DateTime today = DateTime.now();
-    final DateTime initialDate = selectedBirthDate ??
-        DateTime(today.year - 18, today.month, today.day);
+
+    final DateTime initialDate =
+        selectedBirthDate ?? DateTime(today.year - 18, today.month, today.day);
 
     final DateTime? pickedDate = await showDatePicker(
       context: context,
@@ -140,6 +140,7 @@ class _CitizenDetailsScreenState extends State<CitizenDetailsScreen> {
   String _formatDate(DateTime date) {
     final String day = date.day.toString().padLeft(2, '0');
     final String month = date.month.toString().padLeft(2, '0');
+
     return '$day/$month/${date.year}';
   }
 
@@ -147,15 +148,14 @@ class _CitizenDetailsScreenState extends State<CitizenDetailsScreen> {
     FocusScope.of(context).unfocus();
 
     final String fullName = nameController.text.trim();
-    final String identityNumber = idController.text.trim();
     final String disease = chronicDiseaseController.text.trim();
+
     final List<String> nameParts = fullName
         .split(RegExp(r'\s+'))
         .where((part) => part.isNotEmpty)
         .toList();
 
     String? nextNameError;
-    String? nextIdError;
     String? nextBirthDateError;
     String? nextChronicChoiceError;
     String? nextDiseaseError;
@@ -164,12 +164,6 @@ class _CitizenDetailsScreenState extends State<CitizenDetailsScreen> {
       nextNameError = 'يرجى إدخال الاسم الرباعي';
     } else if (nameParts.length < 4) {
       nextNameError = 'يرجى إدخال الاسم الرباعي كاملًا';
-    }
-
-    if (identityNumber.isEmpty) {
-      nextIdError = 'يرجى إدخال رقم الهوية';
-    } else if (identityNumber.length != 9) {
-      nextIdError = 'رقم الهوية يجب أن يتكون من 9 أرقام';
     }
 
     if (selectedBirthDate == null) {
@@ -184,21 +178,21 @@ class _CitizenDetailsScreenState extends State<CitizenDetailsScreen> {
 
     setState(() {
       nameError = nextNameError;
-      idError = nextIdError;
       birthDateError = nextBirthDateError;
       chronicChoiceError = nextChronicChoiceError;
       chronicDiseaseError = nextDiseaseError;
     });
 
     if (nextNameError != null ||
-        nextIdError != null ||
         nextBirthDateError != null ||
         nextChronicChoiceError != null ||
         nextDiseaseError != null) {
       return;
     }
 
-    setState(() => isLoading = true);
+    setState(() {
+      isLoading = true;
+    });
 
     try {
       await ApiService.instance.registerCitizen(
@@ -206,7 +200,6 @@ class _CitizenDetailsScreenState extends State<CitizenDetailsScreen> {
         phoneNumber: widget.phone,
         password: widget.password,
         fullName: fullName,
-        idNumber: identityNumber,
         dateOfBirth: selectedBirthDate!,
         hasChronicDisease: hasChronicDisease!,
         chronicDiseaseDescription: disease,
@@ -224,13 +217,20 @@ class _CitizenDetailsScreenState extends State<CitizenDetailsScreen> {
       setState(() {
         isLoading = false;
         nameError = error.fieldErrors['full_name'];
-        idError = error.fieldErrors['id_number'];
         birthDateError = error.fieldErrors['date_of_birth'];
         chronicDiseaseError =
-            error.fieldErrors['chronic_disease_description'];
+        error.fieldErrors['chronic_disease_description'];
       });
 
       showMessage(error.message);
+    } catch (_) {
+      if (!mounted) return;
+
+      setState(() {
+        isLoading = false;
+      });
+
+      showMessage('حدث خطأ غير متوقع، يرجى المحاولة مرة أخرى');
     }
   }
 
@@ -242,7 +242,9 @@ class _CitizenDetailsScreenState extends State<CitizenDetailsScreen> {
           child: Text(
             message,
             textAlign: TextAlign.right,
-            style: const TextStyle(fontFamily: fontFamily),
+            style: const TextStyle(
+              fontFamily: fontFamily,
+            ),
           ),
         ),
       ),
@@ -270,7 +272,9 @@ class _CitizenDetailsScreenState extends State<CitizenDetailsScreen> {
               children: [
                 _buildMainContent(),
                 if (accountCreatedSuccessfully)
-                  _SuccessOverlay(onLogin: goToLogin),
+                  _SuccessOverlay(
+                    onLogin: goToLogin,
+                  ),
               ],
             ),
           ),
@@ -285,7 +289,9 @@ class _CitizenDetailsScreenState extends State<CitizenDetailsScreen> {
         return SingleChildScrollView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            constraints: BoxConstraints(
+              minHeight: constraints.maxHeight,
+            ),
             child: IntrinsicHeight(
               child: Column(
                 children: [
@@ -301,7 +307,12 @@ class _CitizenDetailsScreenState extends State<CitizenDetailsScreen> {
                           topRight: Radius.circular(22),
                         ),
                       ),
-                      padding: const EdgeInsets.fromLTRB(20, 28, 20, 24),
+                      padding: const EdgeInsets.fromLTRB(
+                        20,
+                        28,
+                        20,
+                        24,
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
@@ -324,29 +335,8 @@ class _CitizenDetailsScreenState extends State<CitizenDetailsScreen> {
                           ),
                           _ErrorText(message: nameError),
                           const SizedBox(height: 16),
-                          SizedBox(
-                            height: 53,
-                            child: TextField(
-                              controller: idController,
-                              keyboardType: TextInputType.number,
-                              textInputAction: TextInputAction.next,
-                              textDirection: TextDirection.ltr,
-                              textAlign: TextAlign.right,
-                              maxLength: 9,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
-                              ],
-                              onChanged: onIdChanged,
-                              style: _inputStyle,
-                              decoration: _fieldDecoration(
-                                hint: 'أدخل رقم الهوية',
-                                icon: Icons.credit_card_rounded,
-                                hasError: idError != null,
-                              ).copyWith(counterText: ''),
-                            ),
-                          ),
-                          _ErrorText(message: idError),
-                          const SizedBox(height: 16),
+
+                          // حقل تاريخ الميلاد
                           SizedBox(
                             height: 53,
                             child: TextField(
@@ -365,6 +355,7 @@ class _CitizenDetailsScreenState extends State<CitizenDetailsScreen> {
                           ),
                           _ErrorText(message: birthDateError),
                           const SizedBox(height: 22),
+
                           const Text(
                             'هل تعاني من مرض مزمن؟',
                             textDirection: TextDirection.rtl,
@@ -377,23 +368,29 @@ class _CitizenDetailsScreenState extends State<CitizenDetailsScreen> {
                             ),
                           ),
                           const SizedBox(height: 12),
+
                           Row(
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
                               _RadioChoice(
                                 label: 'نعم',
                                 selected: hasChronicDisease == true,
-                                onTap: () => selectChronicDisease(true),
+                                onTap: () {
+                                  selectChronicDisease(true);
+                                },
                               ),
                               const SizedBox(width: 55),
                               _RadioChoice(
                                 label: 'لا',
                                 selected: hasChronicDisease == false,
-                                onTap: () => selectChronicDisease(false),
+                                onTap: () {
+                                  selectChronicDisease(false);
+                                },
                               ),
                             ],
                           ),
                           _ErrorText(message: chronicChoiceError),
+
                           if (hasChronicDisease == true) ...[
                             const SizedBox(height: 18),
                             SizedBox(
@@ -405,7 +402,9 @@ class _CitizenDetailsScreenState extends State<CitizenDetailsScreen> {
                                 textDirection: TextDirection.rtl,
                                 textAlign: TextAlign.right,
                                 onChanged: onDiseaseChanged,
-                                onSubmitted: (_) => createAccount(),
+                                onSubmitted: (_) {
+                                  createAccount();
+                                },
                                 style: _inputStyle,
                                 decoration: _fieldDecoration(
                                   hint: 'صف مرضك المزمن',
@@ -414,9 +413,13 @@ class _CitizenDetailsScreenState extends State<CitizenDetailsScreen> {
                                 ),
                               ),
                             ),
-                            _ErrorText(message: chronicDiseaseError),
+                            _ErrorText(
+                              message: chronicDiseaseError,
+                            ),
                           ],
+
                           const SizedBox(height: 36),
+
                           SizedBox(
                             height: 53,
                             child: ElevatedButton(
@@ -434,22 +437,22 @@ class _CitizenDetailsScreenState extends State<CitizenDetailsScreen> {
                               ),
                               child: isLoading
                                   ? const SizedBox(
-                                      width: 21,
-                                      height: 21,
-                                      child: CircularProgressIndicator(
-                                        color: Colors.white,
-                                        strokeWidth: 2,
-                                      ),
-                                    )
+                                width: 21,
+                                height: 21,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
                                   : const Text(
-                                      'إنشاء حساب',
-                                      style: TextStyle(
-                                        fontFamily: fontFamily,
-                                        color: Colors.white,
-                                        fontSize: 17,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
+                                'إنشاء حساب',
+                                style: TextStyle(
+                                  fontFamily: fontFamily,
+                                  color: Colors.white,
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
                             ),
                           ),
                           const SizedBox(height: 20),
@@ -466,12 +469,14 @@ class _CitizenDetailsScreenState extends State<CitizenDetailsScreen> {
     );
   }
 
-  TextStyle get _inputStyle => const TextStyle(
-        fontFamily: fontFamily,
-        color: Colors.black,
-        fontSize: 14,
-        fontWeight: FontWeight.w400,
-      );
+  TextStyle get _inputStyle {
+    return const TextStyle(
+      fontFamily: fontFamily,
+      color: Colors.black,
+      fontSize: 14,
+      fontWeight: FontWeight.w400,
+    );
+  }
 
   InputDecoration _fieldDecoration({
     required String hint,
@@ -513,10 +518,16 @@ class _CitizenDetailsScreenState extends State<CitizenDetailsScreen> {
     );
   }
 
-  OutlineInputBorder _outlineBorder(Color color, {double width = 1}) {
+  OutlineInputBorder _outlineBorder(
+      Color color, {
+        double width = 1,
+      }) {
     return OutlineInputBorder(
       borderRadius: BorderRadius.circular(10),
-      borderSide: BorderSide(color: color, width: width),
+      borderSide: BorderSide(
+        color: color,
+        width: width,
+      ),
     );
   }
 }
@@ -547,7 +558,9 @@ class _CitizenHeader extends StatelessWidget {
                 height: 230,
                 fit: BoxFit.contain,
                 filterQuality: FilterQuality.high,
-                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                errorBuilder: (_, __, ___) {
+                  return const SizedBox.shrink();
+                },
               ),
             ),
             Positioned(
@@ -556,7 +569,9 @@ class _CitizenHeader extends StatelessWidget {
               child: Material(
                 color: Colors.transparent,
                 child: InkWell(
-                  onTap: () => Navigator.pop(context),
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
                   borderRadius: BorderRadius.circular(30),
                   child: const SizedBox(
                     width: 42,
@@ -631,7 +646,10 @@ class _RadioChoice extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 4),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 5,
+          vertical: 4,
+        ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -653,7 +671,10 @@ class _RadioChoice extends StatelessWidget {
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: primaryColor, width: 1.5),
+                border: Border.all(
+                  color: primaryColor,
+                  width: 1.5,
+                ),
               ),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 160),
@@ -673,11 +694,15 @@ class _RadioChoice extends StatelessWidget {
 class _ErrorText extends StatelessWidget {
   final String? message;
 
-  const _ErrorText({required this.message});
+  const _ErrorText({
+    required this.message,
+  });
 
   @override
   Widget build(BuildContext context) {
-    if (message == null) return const SizedBox.shrink();
+    if (message == null) {
+      return const SizedBox.shrink();
+    }
 
     return Padding(
       padding: const EdgeInsets.only(top: 5),
@@ -699,7 +724,9 @@ class _ErrorText extends StatelessWidget {
 class _SuccessOverlay extends StatelessWidget {
   final VoidCallback onLogin;
 
-  const _SuccessOverlay({required this.onLogin});
+  const _SuccessOverlay({
+    required this.onLogin,
+  });
 
   static const Color primaryColor = Color(0xFF0C3468);
   static const String fontFamily = 'ThmanyahSerifDisplay';
